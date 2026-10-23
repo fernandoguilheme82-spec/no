@@ -4,6 +4,8 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
+import re
 from pathlib import Path
 import shutil
 import socket
@@ -76,6 +78,32 @@ class MemoryTests(unittest.TestCase):
         self.assertLessEqual(available, total)
 
 class StorageTests(Fixture):
+    def test_pin_is_a_sha1_and_version_is_fixed(self):
+        self.assertRegex(s.SERVER_SHA1, r'^[a-f0-9]{40}$')
+        self.assertEqual(s.VERSION, '1.12.2')
+        self.assertEqual(s.SERVER_URL, f'https://piston-data.mojang.com/v1/objects/{s.SERVER_SHA1}/server.jar')
+
+    def test_memory_pressure_requires_consecutive_samples(self):
+        engine = s.Supervisor(self.root)
+        engine.child = mock.Mock(pid=os.getpid())
+        with mock.patch.object(s, 'ram', return_value=(4096, 100)), mock.patch.object(s, 'free_mb', return_value=10000):
+            for _ in range(2):
+                engine.monitor()
+                self.assertIsNone(engine.intent)
+            engine.monitor()
+            self.assertEqual(engine.intent, 'pressure')
+            self.assertFalse(engine.stopping.is_set())
+
+    def test_memory_pressure_stops_when_recovery_is_disabled(self):
+        engine = s.Supervisor(self.root)
+        engine.child = mock.Mock(pid=os.getpid())
+        engine.maint['AUTO_RECOVERY'] = 'false'
+        with mock.patch.object(s, 'ram', return_value=(4096, 100)), mock.patch.object(s, 'free_mb', return_value=10000):
+            for _ in range(3):
+                engine.monitor()
+        self.assertTrue(engine.stopping.is_set())
+        self.assertIsNone(engine.intent)
+
     def test_backup_restore_inventories_and_preserve_previous(self):
         world = self.world()
         archive = s.backup_offline(self.root)

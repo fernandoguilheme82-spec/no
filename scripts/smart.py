@@ -29,7 +29,7 @@ import uuid
 import zipfile
 
 VERSION = "1.12.2"
-SERVER_SHA1 = "886945bfb2b978778c3a0288fd7fab09d315b25f7"
+SERVER_SHA1 = "886945bfb2b978778c3a0288fd7fab09d315b25f"
 SERVER_URL = f"https://piston-data.mojang.com/v1/objects/{SERVER_SHA1}/server.jar"
 MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 MIB = 1024 * 1024
