@@ -607,7 +607,8 @@ class Supervisor:
 
     def state(self):
         pid = self.child.pid if self.child and self.child.poll() is None else None
-        return {"state": self.phase, "supervisor_pid": os.getpid(), "java_pid": pid,
+        phase = "Java encerrado; processando saída" if self.phase == "online" and pid is None else self.phase
+        return {"state": phase, "supervisor_pid": os.getpid(), "java_pid": pid,
                 "uptime_seconds": round(time.monotonic() - self.started),
                 "java_uptime_seconds": round(time.monotonic() - self.child_started) if pid else None,
                 "java": process_metrics(pid) if pid else None, "cpu_percent": self.cpu_pct,

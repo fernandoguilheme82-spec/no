@@ -5,7 +5,6 @@ import importlib.util
 import io
 import json
 import os
-import re
 from pathlib import Path
 import shutil
 import socket
@@ -103,6 +102,15 @@ class StorageTests(Fixture):
                 engine.monitor()
         self.assertTrue(engine.stopping.is_set())
         self.assertIsNone(engine.intent)
+
+    def test_exited_java_is_not_reported_online(self):
+        engine = s.Supervisor(self.root)
+        engine.phase = 'online'
+        engine.child = mock.Mock(pid=123, poll=mock.Mock(return_value=23))
+        with mock.patch.object(s, 'tcp_open', return_value=False):
+            state = engine.state()
+        self.assertNotEqual(state['state'], 'online')
+        self.assertIsNone(state['java_pid'])
 
     def test_backup_restore_inventories_and_preserve_previous(self):
         world = self.world()
@@ -335,7 +343,7 @@ class SupervisorTests(Fixture):
             old = s.request(self.root, 'status')['java_pid']
             s.request(self.root, 'command', command='crash')
             if attempt < 2:
-                self.wait_state(lambda st: st['state'] == 'online' and st['java_pid'] != old)
+                self.wait_state(lambda st: st['state'] == 'online' and st['java_pid'] is not None and st['java_pid'] != old)
         self.assertEqual(self.process.wait(timeout=15), 1)
         log = (self.root / 'logs/engine.log').read_text()
         self.assertIn('Limite de reinícios atingido', log)
