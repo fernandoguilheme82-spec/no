@@ -24,7 +24,7 @@ O workflow **SMART VANILLA - sessao temporaria de validacao** exige aceitação 
 
 ## Evidência inicial
 
-Na implementação local, a análise e os testes que não dependem de socket Unix puderam ser executados. Este ambiente bloqueia AF_UNIX com `Operation not permitted`; os testes de supervisor registram skip explícito aqui. O acesso direto por download à Mojang também não respondeu nesta rede; os checks oficiais são executados no CI a partir do commit publicado. Consulte o histórico de Actions para o resultado efetivo, e `VALIDATION-RESULTS.md` para o relatório atualizado da entrega.
+Na implementação local, a análise e os testes que não dependem de socket Unix puderam ser executados. Este ambiente bloqueia AF_UNIX com `Operation not permitted`; os testes de supervisor registram skip explícito aqui. O acesso direto por download à Mojang também não respondeu nesta rede; os checks oficiais são executados no CI a partir do commit publicado. O CI completo da execução [39979124134](https://github.com/fernandoguilheme82-spec/no/actions/runs/39979124134) aprovou 33 testes sem skips, ShellCheck/Actionlint e download/execução do JAR em Java 8 Linux x86_64 e ARM64 até a barreira da EULA. Veja [VALIDATION-RESULTS.md](VALIDATION-RESULTS.md) para o relatório e os limites exatos.
 
 Não foram executados em aparelho Android físico: instalação de pacotes Termux, Java 8 ARM64 sob PRoot, consumo/temperatura e concorrência com Zalith. Os caminhos estão implementados, mas execução Linux x86_64 não comprova funcionamento em todo Android.
 
