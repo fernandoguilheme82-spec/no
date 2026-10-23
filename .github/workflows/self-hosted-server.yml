@@ -1,0 +1,36 @@
+name: SMART SERVER SELF-HOSTED
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Operacao no servico pre-instalado da sua maquina Linux
+        required: true
+        type: choice
+        default: status
+        options: [status, start, stop, restart, backup]
+permissions:
+  contents: read
+concurrency:
+  group: smart-vanilla-self-hosted
+  cancel-in-progress: false
+jobs:
+  control:
+    if: github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, Linux, smart-vanilla]
+    environment: minecraft-production
+    timeout-minutes: 20
+    steps:
+      # No checkout or execution of pull request code on the persistent host.
+      - name: Controlar somente o servico instalado
+        env:
+          SERVICE_ACTION: ${{ inputs.action }}
+        run: |
+          set -euo pipefail
+          case "$SERVICE_ACTION" in
+            start) sudo -n /usr/bin/systemctl start minecraft.service ;;
+            stop) sudo -n /usr/bin/systemctl stop minecraft.service ;;
+            restart) sudo -n /usr/bin/systemctl restart minecraft.service ;;
+            backup) sudo -n -u minecraft /usr/bin/python3 /opt/smart-vanilla/scripts/smart.py --root /srv/smart-vanilla backup ;;
+            status) /usr/bin/systemctl show minecraft.service -p ActiveState -p SubState -p MainPID ;;
+            *) echo 'Operacao invalida' >&2; exit 2 ;;
+          esac

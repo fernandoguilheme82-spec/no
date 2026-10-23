@@ -1,0 +1,47 @@
+name: SMART VANILLA - sessao temporaria de validacao
+on:
+  workflow_dispatch:
+    inputs:
+      accept_eula:
+        description: Li e aceito https://aka.ms/MinecraftEULA
+        required: true
+        type: boolean
+        default: false
+      minutes:
+        description: Minutos de teste local (nao e hospedagem para jogar)
+        required: true
+        type: choice
+        default: '5'
+        options: ['5', '10', '15']
+permissions:
+  contents: read
+concurrency:
+  group: minecraft-validation-session
+  cancel-in-progress: false
+jobs:
+  server:
+    if: github.ref == 'refs/heads/main' && inputs.accept_eula
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '8'
+      - name: Preparar servidor oficial
+        run: bash install-linux.sh --accept-eula --no-start
+      - name: Executar Java, exibir estado e validar ciclo completo
+        env:
+          SESSION_MINUTES: ${{ inputs.minutes }}
+        run: python3 tests/real_smoke.py --accept-eula --minutes "$SESSION_MINUTES"
+      - name: Logs e snapshot do teste
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: smart-vanilla-test-${{ github.run_id }}
+          path: logs/
+          retention-days: 7
+          if-no-files-found: warn

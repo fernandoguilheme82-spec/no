@@ -1,0 +1,33 @@
+[Unit]
+Description=SMART VANILLA SURVIVAL 1.12.2
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=3600
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=minecraft
+Group=minecraft
+WorkingDirectory=/srv/smart-vanilla
+ExecStart=/usr/bin/python3 /opt/smart-vanilla/scripts/smart.py --root /srv/smart-vanilla run
+ExecStop=/usr/bin/python3 /opt/smart-vanilla/scripts/smart.py --root /srv/smart-vanilla stop
+Restart=on-abnormal
+RestartSec=30
+TimeoutStopSec=900
+KillMode=process
+KillSignal=SIGTERM
+SendSIGKILL=no
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/srv/smart-vanilla
+ProtectHome=true
+PrivateTmp=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LimitNOFILE=8192
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

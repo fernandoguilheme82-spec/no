@@ -1,0 +1,54 @@
+name: Validate SMART VANILLA
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  scripts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Dependências de validação
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck python3-yaml
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
+      - name: Sintaxe e estrutura
+        run: |
+          /usr/bin/python3 tests/validate.py
+          shellcheck -S warning -e SC1091 ./*.sh scripts/*.sh
+          "$(go env GOPATH)/bin/actionlint" -color
+      - name: Memória, backups, restauração e supervisor (processo simulado)
+        run: /usr/bin/python3 -m unittest discover -s tests -v
+  official-jar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '8'
+      - name: Download Mojang e integridade da 1.12.2
+        run: bash scripts/download-server.sh
+      - name: Java 8 real, sem aceitar EULA automaticamente
+        run: python3 tests/real_smoke.py
+      - name: Exportar logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: official-jar-validation-${{ github.run_id }}
+          path: logs/
+          retention-days: 7
+          if-no-files-found: warn

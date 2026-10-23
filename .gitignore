@@ -1,0 +1,26 @@
+/world*/
+/logs/
+/backups/
+/crash-reports/
+/.run/
+/.runtime/
+/.termux/
+/.cache/
+/eula.txt
+/ops.json
+/whitelist.json
+/banned-*.json
+/usercache.json
+/server.jar
+/server.jar.*
+*.hprof
+hs_err_pid*
+*.log
+*.tmp
+*.partial
+.env
+*.pem
+*.key
+__pycache__/
+*.pyc
+# Outros level-name: adicione aqui antes de fazer git add.
